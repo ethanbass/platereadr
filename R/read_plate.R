@@ -48,7 +48,7 @@ extract_table <- function(df, tidy = TRUE){
     x <- as.data.frame(x)
     x$lambda <- stringr::str_split_fixed(df[headings]," ",4)[i,3]
     if (tidy)
-      x <- tidyr::pivot_longer(x, cols=2:7)
+      x <- tidyr::pivot_longer(x, cols=2:(ncol(x)-1))
     x
   })
   x1
