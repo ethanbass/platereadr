@@ -4,12 +4,7 @@
 \alias{run_grc_model}
 \title{Run growthcurver models}
 \usage{
-run_grc_model(
-  x,
-  lambda,
-  what = c("models", "predictions", "both"),
-  plot_it = TRUE
-)
+run_grc_model(x, lambda, what = c("models", "predictions"), plot_it = TRUE)
 }
 \arguments{
 \item{x}{tidy growth curve data}

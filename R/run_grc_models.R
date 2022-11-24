@@ -12,16 +12,19 @@
 #' @author Ethan Bass
 #' @note: This function is based on code by Daniel Padfield (https://github.com/sprouffske/growthcurver/issues/12)
 #' @export
-run_grc_model <- function(x, lambda, what = c("models","predictions","both"), plot_it = TRUE){
-  what <- match.arg(what, c("models","predictions","both"))
-
+run_grc_model <- function(x, lambda, what = c("models","predictions"), plot_it = TRUE){
+  
+  what <- match.arg(what, c("models","predictions"), several.ok = TRUE)
+  if (all(c("models","predictions") %in% what)){
+    what <- "both"
+  }
   output <- tibble(well = unique(x$name), model=list(NA), vals=list(NA), data=list(NA))
   for (well in unique(x$name)){
     cond <- which(x$lambda == lambda & x$name == well & x$Time > 5)
     m <- SummarizeGrowth(x[cond,"Time"], x[cond,"value"], bg_correct = "min")
     idx <- which(output$well == well)
     output$model[[idx]] <- m$model
-    output$vals[[idx]] <- m$vals %>% unlist() %>% bind_rows() %>%
+    output$vals[[idx]] <- m$vals |> unlist() |> bind_rows() |>
       mutate(across(.data$k:.data$auc_e, as.numeric))
     output$data[[idx]] <- m$data
   }
@@ -29,8 +32,8 @@ run_grc_model <- function(x, lambda, what = c("models","predictions","both"), pl
   output[rm,2] <- NA
 
 
-  d_preds <- mutate(output, preds = map(.data$model, broom::augment)) %>%
-    unnest(.data$preds) %>%
+  d_preds <- mutate(output, preds = map(.data$model, broom::augment)) |>
+    unnest(.data$preds) |>
     select(-c(2:4))
 
   d_preds$well <- factor(d_preds$well, levels = unique(d_preds$well))
@@ -42,11 +45,11 @@ run_grc_model <- function(x, lambda, what = c("models","predictions","both"), pl
     p <- plot_growth(d_preds)
     print(p)
   }
-
+  
   switch(what,
          "models" = output,
          "predictions" = d_preds,
-         "both" = list(output, d_preds))
+         "both" = list(models=output, predictions=d_preds))
 }
 
 #' Run growthcurver models
@@ -69,4 +72,10 @@ plot_growth <- function(x, line_col = "black", pt_col, plot_curves = TRUE,
     p <- p + facet_grid(rows=vars(.data$row), cols=vars(.data$column))
   }
   p
+}
+
+attach_plate_metadata <- function(mods, metadata, by){
+  lapply(mods, function(x){
+    left_join(x, metadata, by=c("well", by))
+  })
 }
