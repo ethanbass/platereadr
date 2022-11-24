@@ -5,4 +5,4 @@
 
 Package for reading plate reader data.
 
-Supports BioTek KC4 `.txt` files.
+Supports BioTek KC4 `.txt` format.
